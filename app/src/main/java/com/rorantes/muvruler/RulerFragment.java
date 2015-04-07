@@ -6,9 +6,9 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +20,7 @@ import android.view.ViewGroup;
 public class RulerFragment extends Fragment {
     static final String DEVICE_WIDTH = "device_width";
     DisplayMetrics metrics;
-    int rulerLineWidth = 20;
+    int rulerLineWidth = 5;
 
     @Override
     public void onCreate(Bundle savedInstaceState){
@@ -52,27 +52,42 @@ public class RulerFragment extends Fragment {
             int totalWidth = metrics.widthPixels;
             float mXDpi = metrics.xdpi;
             int inch = Math.round(mXDpi);
+            float fractionOfInch = inch / 8;
 
             //ruler line settings
             Paint rulerLinePaint = new Paint();
             rulerLinePaint.setColor(Color.BLACK);
             rulerLinePaint.setStyle(Paint.Style.STROKE);
             rulerLinePaint.setStrokeWidth(rulerLineWidth);
+            Paint rulerText = new Paint();
+            int fontSize = 50;
+            rulerText.setTextSize(fontSize);
+            Typeface tf = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
+            rulerText.setTypeface(tf);
+
             //Line Points
             float startX;
             float stopX;
             //stay on top of device for the lines
             float startY = 0;
             //how tall the line
-            float stopY = metrics.heightPixels / 2;
-
-            for(int i = inch; i < totalWidth; i = (i + rulerLineWidth)){
-                startX = stopX = i + rulerLineWidth;
-                Log.d("MyDebug", Float.toString(startX));
-                Log.d("MyDebug", Float.toString(startY));
-                Log.d("MyDebug", Float.toString(stopX));
-                Log.d("MyDebug", Float.toString(stopY));
+            int height = metrics.heightPixels;
+            float stopY;
+            int y = 1;
+            int digits = 0;
+            for(int i = 0; i < totalWidth; i += Math.round(fractionOfInch)){
+                startX = stopX = (i + rulerLineWidth);
+                if(y == 8){
+                    stopY = height / 4;
+                    canvas.drawText(Integer.toString(++digits), (startX - (fontSize/2)), (stopY + 60), rulerText);
+                    y = 0;
+                } else if(y % 2 == 0){
+                    stopY = height / 8;
+                } else {
+                    stopY = height / 16;
+                }
                 canvas.drawLine(startX, startY, stopX, stopY, rulerLinePaint);
+                y++;
             }
         }
     }
