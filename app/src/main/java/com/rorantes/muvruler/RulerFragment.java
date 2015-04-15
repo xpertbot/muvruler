@@ -9,9 +9,12 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 
 /**
@@ -21,6 +24,7 @@ public class RulerFragment extends Fragment {
     static final String DEVICE_WIDTH = "device_width";
     private static final float dp = 18f;
     DisplayMetrics metrics;
+    int inch;
     int rulerLineWidth = 5;
 
     @Override
@@ -37,7 +41,7 @@ public class RulerFragment extends Fragment {
         return new RulerView(getActivity());
     }
 
-    private class RulerView extends View {
+    private class RulerView extends View{
 
         public RulerView(Context context) {
             super(context);
@@ -48,11 +52,11 @@ public class RulerFragment extends Fragment {
             super.onDraw(canvas);
             canvas.drawColor(Color.WHITE);
 
-            DisplayMetrics metrics = new DisplayMetrics();
+            metrics = new DisplayMetrics();
             getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
             int totalWidth = metrics.widthPixels;
             float mXDpi = metrics.xdpi;
-            int inch = Math.round(mXDpi);
+            inch = Math.round(mXDpi);
             float fractionOfInch = inch / 8;
 
             //ruler line settings
@@ -91,6 +95,21 @@ public class RulerFragment extends Fragment {
                 canvas.drawLine(startX, startY, stopX, stopY, rulerLinePaint);
                 y++;
             }
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            switch(event.getAction()){
+                case MotionEvent.ACTION_DOWN:
+                    float xCoords = event.getX();
+                    float measuredDistance = xCoords / inch;
+                    Toast.makeText(getActivity(), "Size is "+Float.toString(measuredDistance), Toast.LENGTH_SHORT).show();
+                    Log.d("MyDebug", "here");
+                    break;
+                default:
+                    break;
+            }
+            return false;
         }
     }
 }
