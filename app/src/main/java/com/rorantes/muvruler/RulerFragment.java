@@ -19,6 +19,7 @@ import android.view.ViewGroup;
  */
 public class RulerFragment extends Fragment {
     static final String DEVICE_WIDTH = "device_width";
+    private static final float dp = 18f;
     DisplayMetrics metrics;
     int rulerLineWidth = 5;
 
@@ -60,7 +61,8 @@ public class RulerFragment extends Fragment {
             rulerLinePaint.setStyle(Paint.Style.STROKE);
             rulerLinePaint.setStrokeWidth(rulerLineWidth);
             Paint rulerText = new Paint();
-            int fontSize = 50;
+            float fpixels = metrics.density * dp;
+            int fontSize = (int) (fpixels + 0.5f);
             rulerText.setTextSize(fontSize);
             Typeface tf = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
             rulerText.setTypeface(tf);
@@ -79,7 +81,7 @@ public class RulerFragment extends Fragment {
                 startX = stopX = (i + rulerLineWidth);
                 if(y == 8){
                     stopY = height / 4;
-                    canvas.drawText(Integer.toString(++digits), (startX - (fontSize/2)), (stopY + 60), rulerText);
+                    canvas.drawText(Integer.toString(++digits), (startX - (fontSize/4)), (stopY + fontSize), rulerText);
                     y = 0;
                 } else if(y % 2 == 0){
                     stopY = height / 8;
