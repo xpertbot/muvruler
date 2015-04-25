@@ -9,32 +9,21 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class RulerFragment extends Fragment {
-    static final String DEVICE_WIDTH = "device_width";
     private static final float dp = 18f;
     DisplayMetrics metrics;
     int inch;
     int rulerLineWidth = 5;
-
-    @Override
-    public void onCreate(Bundle savedInstaceState){
-        super.onCreate(savedInstaceState);
-        if(savedInstaceState != null){
-            metrics = (DisplayMetrics) savedInstaceState.getSerializable(DEVICE_WIDTH);
-        }
-    }
-
+    float[] markerCoords;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -58,12 +47,26 @@ public class RulerFragment extends Fragment {
             float mXDpi = metrics.xdpi;
             inch = Math.round(mXDpi);
             float fractionOfInch = inch / 8;
+            //how tall the line
+            int height = metrics.heightPixels;
+
+            //Draw red line to place the measurement
+            Paint marker = new Paint();
+            marker.setColor(Color.RED);
+            marker.setStyle(Paint.Style.STROKE);
+            marker.setStrokeWidth(rulerLineWidth);
+            if(markerCoords == null){
+                //first time on create
+                markerCoords = new float[]{0, 0, 0, (metrics.heightPixels/2)};
+            }
+            canvas.drawLine(markerCoords[0], markerCoords[1], markerCoords[2], markerCoords[3], marker);
 
             //ruler line settings
             Paint rulerLinePaint = new Paint();
             rulerLinePaint.setColor(Color.BLACK);
             rulerLinePaint.setStyle(Paint.Style.STROKE);
             rulerLinePaint.setStrokeWidth(rulerLineWidth);
+
             Paint rulerText = new Paint();
             float fpixels = metrics.density * dp;
             int fontSize = (int) (fpixels + 0.5f);
@@ -76,8 +79,6 @@ public class RulerFragment extends Fragment {
             float stopX;
             //stay on top of device for the lines
             float startY = 0;
-            //how tall the line
-            int height = metrics.heightPixels;
             float stopY;
             int y = 1;
             int digits = 0;
@@ -101,15 +102,19 @@ public class RulerFragment extends Fragment {
         public boolean onTouchEvent(MotionEvent event) {
             switch(event.getAction()){
                 case MotionEvent.ACTION_DOWN:
-                    float xCoords = event.getX();
-                    float measuredDistance = xCoords / inch;
-                    Toast.makeText(getActivity(), "Size is "+Float.toString(measuredDistance), Toast.LENGTH_SHORT).show();
-                    Log.d("MyDebug", "here");
+                    markerCoords = new float[]{event.getX(),0,event.getX(), (metrics.heightPixels / 2)};
+                    invalidate();
                     break;
-                default:
+                case MotionEvent.ACTION_MOVE:
+                    markerCoords = new float[]{event.getX(),0,event.getX(), (metrics.heightPixels / 2)};
+                    invalidate();
+                case MotionEvent.ACTION_CANCEL:
+                    break;
+                case MotionEvent.ACTION_UP:
+                    float measuredDistance = event.getX()/ inch;
                     break;
             }
-            return false;
+            return true;
         }
     }
 }

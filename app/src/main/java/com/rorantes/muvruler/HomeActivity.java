@@ -1,34 +1,29 @@
 package com.rorantes.muvruler;
 
 import android.annotation.TargetApi;
-import android.app.Fragment;
-import android.app.FragmentManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBarActivity;
-import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 
-
-public class MainActivity extends ActionBarActivity {
-    static final String DEVICE_WIDTH = "device_width";
+/**
+ * Created by Roger on 4/25/2015.
+ */
+public class HomeActivity extends ActionBarActivity {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        FragmentManager fm = getFragmentManager();
-        Fragment fragment = fm.findFragmentById(R.id.container);
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
-//        setContentView.putSerializable("deviceWidth", metrics);
-        if(fragment == null){
-            fm.beginTransaction()
-                .add(R.id.container, new RulerFragment())
-                .commit();
-        }
+        setContentView(R.layout.activity_home);
+        ListView list = (ListView) findViewById(R.id.listView);
+
     }
 
 
@@ -47,7 +42,15 @@ public class MainActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_new_measurement) {
+            Intent intent = new Intent(this ,RulerActivity.class);
+            PendingIntent pendingIntent = TaskStackBuilder.create(this)
+                    .addNextIntent(intent)
+                    .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+            builder.setContentIntent(pendingIntent);
+            startActivityForResult(intent, 1);
             return true;
         }
 
