@@ -1,8 +1,11 @@
 package com.rorantes.muvruler;
 
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -13,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 
 /**
@@ -20,10 +24,12 @@ import android.view.ViewGroup;
  */
 public class RulerFragment extends Fragment {
     private static final float dp = 18f;
+    private float measuredDistance = 0f;
     DisplayMetrics metrics;
-    int inch;
-    int rulerLineWidth = 5;
+    float inch;
+    float rulerLineWidth = 5f;
     float[] markerCoords;
+    LogEntry currentLogEntry;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,8 +50,7 @@ public class RulerFragment extends Fragment {
             metrics = new DisplayMetrics();
             getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
             int totalWidth = metrics.widthPixels;
-            float mXDpi = metrics.xdpi;
-            inch = Math.round(mXDpi);
+            inch = metrics.xdpi;
             float fractionOfInch = inch / 8;
             //how tall the line
             int height = metrics.heightPixels;
@@ -57,7 +62,7 @@ public class RulerFragment extends Fragment {
             marker.setStrokeWidth(rulerLineWidth);
             if(markerCoords == null){
                 //first time on create
-                markerCoords = new float[]{0, 0, 0, (metrics.heightPixels/2)};
+                markerCoords = new float[]{0, 0, 0, (height/2)};
             }
             canvas.drawLine(markerCoords[0], markerCoords[1], markerCoords[2], markerCoords[3], marker);
 
@@ -74,16 +79,22 @@ public class RulerFragment extends Fragment {
             Typeface tf = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
             rulerText.setTypeface(tf);
 
+            //Current Measurement
+            Paint currentMeasurementText = new Paint();
+            currentMeasurementText.setTextSize(fontSize);
+            currentMeasurementText.setTypeface(tf);
+            canvas.drawText(Float.toString(measuredDistance), ((totalWidth / 2) - (fontSize / 4)), (height - (height / 4)), currentMeasurementText);
+
             //Line Points
             float startX;
             float stopX;
             //stay on top of device for the lines
             float startY = 0;
             float stopY;
-            int y = 1;
+            int y = 0;
             int digits = 0;
-            for(int i = 0; i < totalWidth; i += Math.round(fractionOfInch)){
-                startX = stopX = (i + rulerLineWidth);
+            for(float i = 0; i < totalWidth; i += fractionOfInch){
+                startX = stopX = i;
                 if(y == 8){
                     stopY = height / 4;
                     canvas.drawText(Integer.toString(++digits), (startX - (fontSize/4)), (stopY + fontSize), rulerText);
@@ -93,7 +104,9 @@ public class RulerFragment extends Fragment {
                 } else {
                     stopY = height / 16;
                 }
-                canvas.drawLine(startX, startY, stopX, stopY, rulerLinePaint);
+                if(i != 0){
+                    canvas.drawLine(startX, startY, stopX, stopY, rulerLinePaint);
+                }
                 y++;
             }
         }
@@ -102,16 +115,42 @@ public class RulerFragment extends Fragment {
         public boolean onTouchEvent(MotionEvent event) {
             switch(event.getAction()){
                 case MotionEvent.ACTION_DOWN:
-                    markerCoords = new float[]{event.getX(),0,event.getX(), (metrics.heightPixels / 2)};
+                    markerCoords = new float[]{event.getRawX(),0,event.getRawX(), (metrics.heightPixels / 2)};
                     invalidate();
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    markerCoords = new float[]{event.getX(),0,event.getX(), (metrics.heightPixels / 2)};
+                    measuredDistance = event.getRawX()/ inch;
+                    markerCoords = new float[]{event.getRawX(),0,event.getRawX(), (metrics.heightPixels / 2)};
                     invalidate();
-                case MotionEvent.ACTION_CANCEL:
                     break;
+                case MotionEvent.ACTION_CANCEL:
+                    invalidate();
+                    return false;
                 case MotionEvent.ACTION_UP:
-                    float measuredDistance = event.getX()/ inch;
+                    measuredDistance = event.getRawX()/ inch;
+                    final EditText input = new EditText(getActivity());
+                    input.setHint("Tagname for Measurement");
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle("Save Measurement")
+                            .setMessage("Would you like to save the Measurement?")
+                            .setView(input)
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // continue with delete
+                                    currentLogEntry = new LogEntry(input.getText().toString(), measuredDistance);
+                                    Intent myIntent = new Intent(getActivity(), HomeActivity.class);
+                                    myIntent.putExtra("history", currentLogEntry);
+                                    getActivity().startActivity(myIntent);
+                                    getActivity().finish();
+                                }
+                            })
+                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // do nothing
+                                }
+                            })
+                            .setIcon(R.drawable.ic_action_important)
+                            .show();
                     break;
             }
             return true;
