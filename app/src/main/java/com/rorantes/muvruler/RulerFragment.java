@@ -1,11 +1,9 @@
 package com.rorantes.muvruler;
 
 
-import android.app.AlertDialog;
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -16,20 +14,30 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class RulerFragment extends Fragment {
+    OnSavingMeasurement callback;
     private static final float dp = 18f;
     private float measuredDistance = 0f;
     DisplayMetrics metrics;
     float inch;
     float rulerLineWidth = 5f;
     float[] markerCoords;
-    LogEntry currentLogEntry;
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            callback = (OnSavingMeasurement) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnsavingMeasurement");
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -124,36 +132,16 @@ public class RulerFragment extends Fragment {
                     invalidate();
                     break;
                 case MotionEvent.ACTION_CANCEL:
-                    invalidate();
-                    return false;
                 case MotionEvent.ACTION_UP:
                     measuredDistance = event.getRawX()/ inch;
-                    final EditText input = new EditText(getActivity());
-                    input.setHint("Tagname for Measurement");
-                    new AlertDialog.Builder(getActivity())
-                            .setTitle("Save Measurement")
-                            .setMessage("Would you like to save the Measurement?")
-                            .setView(input)
-                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // continue with delete
-                                    currentLogEntry = new LogEntry(input.getText().toString(), measuredDistance);
-                                    Intent myIntent = new Intent(getActivity(), HomeActivity.class);
-                                    myIntent.putExtra("history", currentLogEntry);
-                                    getActivity().startActivity(myIntent);
-                                    getActivity().finish();
-                                }
-                            })
-                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // do nothing
-                                }
-                            })
-                            .setIcon(R.drawable.ic_action_important)
-                            .show();
                     break;
             }
+            callback.onSaveOption(measuredDistance);
             return true;
         }
+    }
+
+    public interface OnSavingMeasurement{
+        public void onSaveOption(float measuredDistance);
     }
 }
