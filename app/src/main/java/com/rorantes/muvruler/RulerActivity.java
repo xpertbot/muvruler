@@ -11,7 +11,9 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ToggleButton;
 
 
 public class RulerActivity extends ActionBarActivity implements RulerFragment.OnSavingMeasurement{
@@ -19,6 +21,7 @@ public class RulerActivity extends ActionBarActivity implements RulerFragment.On
 
     LogEntry currentLogEntry;
     float  measuredDistance;
+    boolean on = false;
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
@@ -32,6 +35,16 @@ public class RulerActivity extends ActionBarActivity implements RulerFragment.On
                 .add(R.id.container, new RulerFragment())
                 .commit();
         }
+    }
+
+    public void onToggleClicked(View view){
+        on = ((ToggleButton) view).isChecked();
+        RulerFragment fragment = (RulerFragment) getFragmentManager().findFragmentById(R.id.container);
+        fragment.setGPSFlag();
+    }
+
+    public boolean onGPSAction(){
+        return on;
     }
 
     public void onSaveOption(float measuredDistance){

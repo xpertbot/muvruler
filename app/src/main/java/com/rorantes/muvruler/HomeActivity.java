@@ -90,7 +90,6 @@ public class HomeActivity extends ActionBarActivity {
 
             TextView tagname = (TextView) convertView.findViewById(R.id.tagname);
             TextView measurement = (TextView) convertView.findViewById(R.id.measurement);
-
             tagname.setText(currentLogEntry.getTagname());
             measurement.setText(Double.toString(Math.round(currentLogEntry.getMeasurement() * 100.0) / 100.0));
 

@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,6 +28,7 @@ public class RulerFragment extends Fragment {
     float inch;
     float rulerLineWidth = 5f;
     float[] markerCoords;
+    boolean gpsOn = false;
 
     @Override
     public void onAttach(Activity activity) {
@@ -42,6 +44,10 @@ public class RulerFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return new RulerView(getActivity());
+    }
+
+    public void setGPSFlag(){
+        gpsOn = callback.onGPSAction();
     }
 
     private class RulerView extends View{
@@ -121,27 +127,34 @@ public class RulerFragment extends Fragment {
 
         @Override
         public boolean onTouchEvent(MotionEvent event) {
-            switch(event.getAction()){
-                case MotionEvent.ACTION_DOWN:
-                    markerCoords = new float[]{event.getRawX(),0,event.getRawX(), (metrics.heightPixels / 2)};
-                    invalidate();
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    measuredDistance = event.getRawX()/ inch;
-                    markerCoords = new float[]{event.getRawX(),0,event.getRawX(), (metrics.heightPixels / 2)};
-                    invalidate();
-                    break;
-                case MotionEvent.ACTION_CANCEL:
-                case MotionEvent.ACTION_UP:
-                    measuredDistance = event.getRawX()/ inch;
-                    break;
+            if (gpsOn == true) {
+                Log.d("MyDebug", Boolean.toString(gpsOn));
+                invalidate();
+                return false;
+            } else {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        markerCoords = new float[]{event.getRawX(), 0, event.getRawX(), (metrics.heightPixels / 2)};
+                        invalidate();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        measuredDistance = event.getRawX() / inch;
+                        markerCoords = new float[]{event.getRawX(), 0, event.getRawX(), (metrics.heightPixels / 2)};
+                        invalidate();
+                        break;
+                    case MotionEvent.ACTION_CANCEL:
+                    case MotionEvent.ACTION_UP:
+                        measuredDistance = event.getRawX() / inch;
+                        break;
+                }
+                callback.onSaveOption(measuredDistance);
+                return true;
             }
-            callback.onSaveOption(measuredDistance);
-            return true;
         }
     }
 
     public interface OnSavingMeasurement{
         public void onSaveOption(float measuredDistance);
+        public boolean onGPSAction();
     }
 }

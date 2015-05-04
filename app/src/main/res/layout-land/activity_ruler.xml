@@ -6,4 +6,19 @@
         android:id="@+id/container"
         android:layout_height="wrap_content"
         android:layout_width="match_parent" />
+
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/gps"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:textOn="GPS ON"
+        android:textOff="GPS OFF"
+        android:layout_marginLeft="48dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginBottom="36dp"
+        android:onClick="onToggleClicked"/>
+
 </RelativeLayout>
