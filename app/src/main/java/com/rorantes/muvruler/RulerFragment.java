@@ -10,7 +10,6 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -128,7 +127,6 @@ public class RulerFragment extends Fragment {
         @Override
         public boolean onTouchEvent(MotionEvent event) {
             if (gpsOn == true) {
-                Log.d("MyDebug", Boolean.toString(gpsOn));
                 invalidate();
                 return false;
             } else {
